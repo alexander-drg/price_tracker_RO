@@ -2,7 +2,7 @@
 A quick python app that finds the price of a product across different websites (built with selenium and tkinter)
 # Search App
 
-This is a simple Python application built with Tkinter and Selenium to search for products on Emag and Evomag websites.
+This is a simple Python application built with Tkinter and Selenium to search for products on various websites( mostly from Romania).
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This is a simple Python application built with Tkinter and Selenium to search fo
 
 ## Introduction
 
-The Search App allows users to input a product name, and it performs searches on both Emag and Evomag websites to fetch and display the product details and prices.
+The Search App allows users to input a product name, and it performs searches on different websites to fetch and display the product details and prices.
 
 ## Features
 
@@ -27,23 +27,20 @@ The Search App allows users to input a product name, and it performs searches on
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/your-username/search-app.git
+ 
+git clone https://github.com/your-username/search-app.git
 Navigate to the project directory:
 
-bash
-Copy code
+
 cd search-app
 Install dependencies:
 
-bash
-Copy code
+
 pip install -r requirements.txt
 Usage
 Run the application:
 
-bash
-Copy code
+
 python main.py
 Enter the product name in the provided entry box.
 
@@ -60,8 +57,5 @@ Contributions are welcome! Please follow the contribution guidelines.
 
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-javascript
-Copy code
 
 Note: Make sure to create `CONTRIBUTING.md` and `LICENSE` files in your proje
