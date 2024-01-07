@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5 import QtCore
 import pyperclip
+import psutil
 
 
 def close_browser(browser):
@@ -18,6 +19,59 @@ def close_browser(browser):
             browser.quit()
     except Exception as e:
         print(f"Error closing browser: {e}")
+
+
+def close_chrome_processes():
+    for process in psutil.process_iter(['pid', 'name']):
+        if 'chrome' in process.info['name'].lower():
+            try:
+                psutil.Process(process.info['pid']).terminate()
+                print(f"Terminated Chrome process with PID {
+                      process.info['pid']}")
+            except psutil.NoSuchProcess:
+                print(f"Process with PID {process.info['pid']} not found")
+            except psutil.AccessDenied:
+                print(f"Access denied to terminate process with PID {
+                      process.info['pid']}")
+
+
+def get_price_altex(browser, product_name, links):
+    try:
+        # Navigate to altex.ro
+        browser.get('https://altex.ro/')
+
+        # Find the search input and enter the user-inputted product name
+        search_input_altex = browser.find_element(
+            By.XPATH, '//*[@id="__next"]/div[1]/div[1]/div/div/div[3]/div/form/div/div/input')
+        search_input_altex.send_keys(product_name)
+
+        # Find the search button and click it
+        search_button_altex = browser.find_element(
+            By.XPATH, '//*[@id="__next"]/div[1]/div[1]/div/div/div[3]/div/form/div/div/button[2]')
+        search_button_altex.click()
+
+        # Wait for the first product to be present on the page
+        wait_altex = WebDriverWait(browser, 10)
+        first_product_altex = wait_altex.until(EC.presence_of_element_located(
+            (By.XPATH, '//*[@id="__next"]/div[2]/div[1]/main/div[2]/div[2]/div[2]/ul[2]/li[1]/div/a[2]/span')))
+
+        # Capture the link
+        links['altex'] = first_product_altex.get_attribute('href')
+
+        first_product_altex.click()
+
+        # Wait for the price element to be present on the page
+        price_element_altex = wait_altex.until(EC.presence_of_element_located(
+            (By.XPATH, '//*[@id="__next"]/div[2]/div[1]/main/div[1]/div[4]/div[2]/div/div[1]/div[1]/div[1]/div')))
+
+        # Get the text of the price element
+        altex_price = price_element_altex.text
+
+        return altex_price
+
+    except NoSuchElementException as e:
+        print(f"Error in Altex: {e}")
+        return "Not found"
 
 
 def get_price_mediagalaxy(browser, product_name, links):
@@ -82,7 +136,7 @@ class ProductInputDialog(QDialog):
 
 
 class PriceDialog(QDialog):
-    def __init__(self, emag_price, evomag_price, mediagalaxy_price, links, parent=None):
+    def __init__(self, emag_price, evomag_price, mediagalaxy_price, altex_price, links, parent=None):
         super(PriceDialog, self).__init__(parent)
         self.setWindowFlags(self.windowFlags() & ~
                             QtCore.Qt.WindowContextHelpButtonHint)
@@ -94,24 +148,30 @@ class PriceDialog(QDialog):
         self.evomag_price_label = QLabel(f"EvoMag Price: {evomag_price}", self)
         self.mediagalaxy_price_label = QLabel(
             f"MediaGalaxy Price: {mediagalaxy_price}", self)
+        self.altex_price_label = QLabel(
+            f"Altex Price: {altex_price}", self)  # Modify this line
         self.emag_link_label = QLabel("eMAG Link: ", self)
         self.evomag_link_label = QLabel("EvoMag Link: ", self)
         self.mediagalaxy_link_label = QLabel("MediaGalaxy Link: ", self)
+        self.altex_link_label = QLabel("Altex Link: ", self)  # Add this line
 
         # Set link labels
         if 'emag' in links:
-            self.emag_link_label.setText(f"eMAG Link: {links['emag']}")
-            self.emag_link_label.setTextInteractionFlags(
-                Qt.TextSelectableByMouse)
+            self.emag_link_label.setText(
+                f"<a href=\"{links['emag']}\">eMAG Link</a>")
+            self.emag_link_label.setOpenExternalLinks(True)
         if 'evomag' in links:
-            self.evomag_link_label.setText(f"EvoMag Link: {links['evomag']}")
-            self.evomag_link_label.setTextInteractionFlags(
-                Qt.TextSelectableByMouse)
+            self.evomag_link_label.setText(
+                f"<a href=\"{links['evomag']}\">EvoMag Link</a>")
+            self.evomag_link_label.setOpenExternalLinks(True)
         if 'mediagalaxy' in links:
             self.mediagalaxy_link_label.setText(
-                f"MediaGalaxy Link: {links['mediagalaxy']}")
-            self.mediagalaxy_link_label.setTextInteractionFlags(
-                Qt.TextSelectableByMouse)
+                f"<a href=\"{links['mediagalaxy']}\">MediaGalaxy Link</a>")
+            self.mediagalaxy_link_label.setOpenExternalLinks(True)
+        if 'altex' in links:
+            self.altex_link_label.setText(
+                f"<a href=\"{links['altex']}\">Altex Link</a>")
+            self.altex_link_label.setOpenExternalLinks(True)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.emag_price_label)
@@ -120,21 +180,8 @@ class PriceDialog(QDialog):
         layout.addWidget(self.evomag_link_label)
         layout.addWidget(self.mediagalaxy_price_label)
         layout.addWidget(self.mediagalaxy_link_label)
-
-    def showEvent(self, event):
-        super().showEvent(event)
-
-        # Copy links to clipboard when the PriceDialog is shown
-        emag_link = f"eMAG Link: {links.get('emag', 'Not found')}\n"
-        evomag_link = f"EvoMag Link: {links.get('evomag', 'Not found')}\n"
-        mediagalaxy_link = f"MediaGalaxy Link: {
-            links.get('mediagalaxy', 'Not found')}\n"
-
-        clipboard_text = emag_link + evomag_link + mediagalaxy_link
-        pyperclip.copy(clipboard_text)
-
-        # Notify the user
-        print("Links have been copied to the clipboard.")
+        layout.addWidget(self.altex_price_label)
+        layout.addWidget(self.altex_link_label)
 
 
 if __name__ == "__main__":
@@ -149,12 +196,12 @@ if __name__ == "__main__":
     emag_price = "Not found"
     evomag_price = "Not found"
     mediagalaxy_price = "Not found"
-
+    altex_price = "Not found"
     # Capture links
     links = {}
 
     options = uc.ChromeOptions()
-    # options.add_argument('--headless')
+    # options.add_argument('--headless') <--- this one didn't work
 
     # After entering the product name
     if input_result == QDialog.Accepted and product_name:
@@ -221,7 +268,18 @@ if __name__ == "__main__":
         finally:
             close_browser(browser_mediagalaxy)
 
+        browser_altex = uc.Chrome()
+        try:
+            altex_price = get_price_altex(browser_altex, product_name, links)
+        except NoSuchElementException as e:
+            print(f"Error in Altex: {e}")
+        finally:
+            close_browser(browser_altex)
+
     # Show the PriceDialog with the obtained prices and links
     price_dialog = PriceDialog(emag_price, evomag_price.splitlines()[
-                               0], mediagalaxy_price, links)
+                               0], mediagalaxy_price, altex_price.splitlines()[
+                               1], links,)
     price_dialog.exec_()
+
+    close_chrome_processes()
