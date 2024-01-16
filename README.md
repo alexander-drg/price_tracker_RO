@@ -49,13 +49,13 @@ Click the "Search" button to initiate the search.
 View the results displayed in the text area.
 
 Dependencies
-Tkinter
+Py.Qt
 Selenium
 ChromeDriver (make sure it's installed and in your system's PATH)
 Contributing
-Contributions are welcome! Please follow the contribution guidelines.
+Contributions are welcome! Please follow the contribution guidelines.![Uploading Capture222.PNG…]()
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
-Note: Make sure to create `CONTRIBUTING.md` and `LICENSE` files in your proje
+
+![example](https://github.com/vodav0da/price_tracker_RO/assets/114608225/2958a031-97ad-4765-94b4-d6531a8c3a5e)
+
