@@ -59,3 +59,5 @@ Contributions are welcome! Please follow the contribution guidelines.![Uploading
 
 ![example](https://github.com/vodav0da/price_tracker_RO/assets/114608225/2958a031-97ad-4765-94b4-d6531a8c3a5e)
 
+![final](https://github.com/vodav0da/price_tracker_RO/assets/114608225/a8a6b10e-438f-41d3-9e4b-ad84ffaa6ad6)
+
